@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hackathon_frontend/app/app.dart';
+import 'package:hackathon_frontend/display/display.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -24,8 +25,8 @@ class _MainScreenState extends State<MainScreen> {
       label: "Home",
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.chat_bubble_outline),
-      label: "ChatBot",
+      icon: Icon(CustomIcons.robot),
+      label: "Chatbot",
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.featured_play_list_outlined),

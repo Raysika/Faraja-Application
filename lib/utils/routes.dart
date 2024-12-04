@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:hackathon_frontend/app/app.dart';
 import 'package:hackathon_frontend/app/navigation/main_screen.dart';
 import 'package:hackathon_frontend/auth/pages/pages.dart';
 
