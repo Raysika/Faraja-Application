@@ -4,6 +4,7 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:get/get.dart';
 import '../../display/display.dart';
 import '../../utils/utils.dart';
+import '../controllers/controllers.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -15,6 +16,7 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   bool _hidePassword = true;
+  final _authController = Get.find<AuthController>();
   // bool _loading = false;
 
   void _togglePassword() {
@@ -71,14 +73,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               style: TextStyle(fontSize: 40),
                             ),
                             const SizedBox(height: Constants.SPACING),
+                            const Text("Username"),
+                            FormBuilderTextField(
+                              name: 'user_name',
+                              decoration: const InputDecoration(
+                                hintText: "jonte@254",
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.person_2),
+                              ),
+                              validator: FormBuilderValidators.compose([
+                                FormBuilderValidators.required(),
+                                FormBuilderValidators.minLength(2),
+                              ]),
+                            ),
+                            const SizedBox(height: Constants.SPACING),
                             const Text("First Name"),
                             FormBuilderTextField(
                               name: 'first_name',
                               decoration: const InputDecoration(
-                                hintText: "John",
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.person)
-                              ),
+                                  hintText: "John",
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.person)),
                               validator: FormBuilderValidators.compose([
                                 FormBuilderValidators.required(),
                                 FormBuilderValidators.minLength(2),
@@ -125,27 +140,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 border: OutlineInputBorder(),
                               ),
                               inputType: InputType.date,
-                              validator: FormBuilderValidators.compose([
-                                FormBuilderValidators.required(),
-                              ]),
-                            ),
-                            const SizedBox(height: Constants.SPACING),
-                            const Text("Gender"),
-                            FormBuilderDropdown(
-                              name: 'gender',
-                              decoration: const InputDecoration(
-                                hintText: "Select your gender",
-                                prefixIcon: Icon(Icons.wc),
-                                border: OutlineInputBorder(),
-                              ),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Male', child: Text('Male')),
-                                DropdownMenuItem(
-                                    value: 'Female', child: Text('Female')),
-                                DropdownMenuItem(
-                                    value: 'Other', child: Text('Other')),
-                              ],
                               validator: FormBuilderValidators.compose([
                                 FormBuilderValidators.required(),
                               ]),
@@ -219,24 +213,47 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ]),
                             ),
                             const SizedBox(height: 20),
-                            OutlinedButton(
-                              onPressed: () {
-                                Get.toNamed(RouteNames.MAIN_SCREEN);
-                              }, 
-                              child: const Text("Register"),
-                            ),
+                            Obx(() {
+                              return _authController.isLoading.value
+                                  ? const CircularProgressIndicator()
+                                  : OutlinedButton(
+                                      onPressed: () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          var result = await _authController.registerUser(
+                                            _formKey.currentState!.value['user_name'],
+                                            _formKey.currentState!.value['first_name'],
+                                            _formKey.currentState!.value['last_name'],
+                                            _formKey.currentState!.value['email'],
+                                            _formKey.currentState!.value['dob'],
+                                            _formKey.currentState!.value['phone_number'],
+                                            _formKey.currentState!.value['password'],
+                                          );
+                                          result.fold(
+                                            (error) {
+                                              Get.snackbar("Error", "There was an error registering you, please try again.",
+                                                  snackPosition: SnackPosition.BOTTOM);
+                                            },
+                                            (user) {
+                                              Get.toNamed(RouteNames.MAIN_SCREEN);
+                                            },
+                                          );
+                                        }
+                                      },
+                                      child: const Text("Register"),
+                                    );
+                            }),
                             const SizedBox(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const Text("Already have an account,"),
-                              TextButton(
-                                onPressed: () {
-                                  Get.toNamed(RouteNames.LOGIN_SCREEN);
-                                },
-                                child: const Text("Login"),
-                              ),
-                            ],
+                              children: [
+                                const Text("Already have an account,"),
+                                TextButton(
+                                  onPressed: () {
+                                    Get.toNamed(RouteNames.LOGIN_SCREEN);
+                                  },
+                                  child: const Text("Login"),
+                                ),
+                              ],
                             ),
                           ],
                         ),
