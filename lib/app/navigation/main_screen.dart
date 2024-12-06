@@ -28,8 +28,8 @@ class _MainScreenState extends State<MainScreen> {
       label: "ChatBot",
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.featured_play_list_outlined),
-      label: "Features",
+      icon: Icon(Icons.create_outlined),
+      label: "Morning Pages",
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.person_2_outlined),
