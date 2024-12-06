@@ -14,20 +14,22 @@ class UserService extends NetworkHelper {
       String userName,
       String firstName,
       String lastName,
+      String gender,
       String email,
       String phoneNumber,
       String password,
-      DateTime dateOfBirth) async {
+      String dateOfBirth) async {
     try {
       var response = await http.post(
         Uri.parse("${Constants.BASE_URL}/accounts/register/"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          'user_name': userName,
+          'username': userName,
           'first_name': firstName,
           'last_name': lastName,
+          'gender': gender,
           'email': email,
-          'phone_number': phoneNumber,
+          'phone': phoneNumber,
           'password': password,
           'date_of_birth': dateOfBirth
         }),
@@ -36,17 +38,37 @@ class UserService extends NetworkHelper {
       if (response.statusCode == 201) {
         var jsonData = jsonDecode(response.body);
         debugPrint("Register Response JSON: $jsonData");
-        debugPrint(
-            "Access token: ${jsonData['access_token']}, Refresh token: ${jsonData['refresh_token']}");
-        await LocalStorage.saveToken(jsonData['access_token']);
-        await LocalStorage.saveToken(jsonData['refresh_token']);
-        return Right(User.fromJson(jsonData));
+        debugPrint("Access Token: ${jsonData['access']}");
+        debugPrint("Refresh Token: ${jsonData['refresh']}");
+
+        // Save the tokens in local storage
+        if (jsonData['access'] != null && jsonData['refresh'] != null) {
+          // Storing the tokens as TokenPair
+          TokenPair tokenPair = TokenPair(
+            access: jsonData['access'],
+            refresh: jsonData['refresh'],
+          );
+          await LocalStorage.saveToken(tokenPair);
+
+          // Returning the User object
+          if (jsonData.containsKey('user')) {
+            User user = User.fromJson(jsonData['user']);
+            return Right(user);
+          } else {
+            debugPrint('User object missing in the response');
+            return const Left('User object missing in the response');
+          }
+        } else {
+          debugPrint('Missing access or refresh token in the response');
+          return const Left('Missing access or refresh token in the response');
+        }
       } else {
         debugPrint("Error: ${response.body}");
         return Left(
             'Failed to register user. Status code: ${response.statusCode}');
       }
     } catch (e) {
+      debugPrint('Error registering user: $e');
       return Left('Error registering user: $e');
     }
   }

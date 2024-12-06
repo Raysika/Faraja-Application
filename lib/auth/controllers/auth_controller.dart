@@ -12,13 +12,14 @@ class AuthController extends GetxController {
       String userName,
       String firstName,
       String lastName,
+      String gender,
       String email,
       String phoneNumber,
       String password,
-      DateTime dateOfBirth) async {
+      String dateOfBirth) async {
     isLoading(true);
     var result = await _userService.register(userName, firstName, lastName,
-        email, phoneNumber, password, dateOfBirth);
+        gender ,email, phoneNumber, password, dateOfBirth);
 
     isLoading(false);
     return result.fold((l) {

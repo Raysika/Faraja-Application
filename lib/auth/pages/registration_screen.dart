@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../display/display.dart';
 import '../../utils/utils.dart';
 import '../controllers/controllers.dart';
@@ -16,7 +17,7 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   bool _hidePassword = true;
-  final _authController = Get.find<AuthController>();
+  final AuthController _authController = Get.put(AuthController());
   // bool _loading = false;
 
   void _togglePassword() {
@@ -114,6 +115,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ]),
                             ),
                             const SizedBox(height: Constants.SPACING),
+                            const Text("Gender"),
+                            FormBuilderDropdown(
+                              name: 'gender',
+                              decoration: const InputDecoration(
+                                hintText: "Select your gender",
+                                prefixIcon: Icon(Icons.wc),
+                                border: OutlineInputBorder(),
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'Male', child: Text('Male')),
+                                DropdownMenuItem(
+                                    value: 'Female', child: Text('Female')),
+                                // DropdownMenuItem(
+                                //     value: 'Other', child: Text('Other')),
+                              ],
+                              validator: FormBuilderValidators.compose([
+                                FormBuilderValidators.required(),
+                              ]),
+                            ),
+                            const SizedBox(height: Constants.SPACING),
                             const Text("Email"),
                             FormBuilderTextField(
                               name: 'email',
@@ -143,6 +165,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               validator: FormBuilderValidators.compose([
                                 FormBuilderValidators.required(),
                               ]),
+                              // onChanged: (date) {
+                              //   if (date != null) {
+                              //     String formattedDob =
+                              //         DateFormat('yyyy-MM-dd').format(date);
+                              //     debugPrint(
+                              //         "Formatted Date of Birth: $formattedDob");
+                              //   }
+                              // },
                             ),
                             const SizedBox(height: Constants.SPACING),
                             const Text("Phone Number"),
@@ -205,11 +235,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               validator: FormBuilderValidators.compose([
                                 FormBuilderValidators.required(),
                                 FormBuilderValidators.minLength(6),
-                                (value) =>
-                                    _formKey.currentState!.value['password'] !=
-                                            value
-                                        ? "Password didn't match"
-                                        : null
+                                (value) => _formKey
+                                            .currentState!.value['password'] !=
+                                        value
+                                    ? "Confirm password must match with password"
+                                    : null
                               ]),
                             ),
                             const SizedBox(height: 20),
@@ -218,23 +248,47 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   ? const CircularProgressIndicator()
                                   : OutlinedButton(
                                       onPressed: () async {
-                                        if (_formKey.currentState!.validate()) {
-                                          var result = await _authController.registerUser(
-                                            _formKey.currentState!.value['user_name'],
-                                            _formKey.currentState!.value['first_name'],
-                                            _formKey.currentState!.value['last_name'],
-                                            _formKey.currentState!.value['email'],
-                                            _formKey.currentState!.value['dob'],
-                                            _formKey.currentState!.value['phone_number'],
-                                            _formKey.currentState!.value['password'],
-                                          );
+                                        if (_formKey.currentState!
+                                            .saveAndValidate()) {
+                                          DateTime? dob = _formKey
+                                              .currentState!.value['dob'];
+
+                                          // Convert the DateTime to a string (e.g., ISO 8601 format)
+                                          String formattedDob =
+                                              DateFormat('yyyy-MM-dd')
+                                                  .format(dob!);
+                                          debugPrint(
+                                              "Formatted DOB: $formattedDob");
+
+                                          var result = await _authController
+                                              .registerUser(
+                                                  _formKey.currentState!
+                                                      .value['user_name'],
+                                                  _formKey.currentState!
+                                                      .value['first_name'],
+                                                  _formKey.currentState!
+                                                      .value['last_name'],
+                                                  _formKey.currentState!
+                                                      .value['gender'],
+                                                  _formKey.currentState!
+                                                      .value['email'],
+                                                  _formKey.currentState!
+                                                      .value['phone_number'],
+                                                  _formKey.currentState!
+                                                      .value['password'],
+                                                  formattedDob);
                                           result.fold(
                                             (error) {
-                                              Get.snackbar("Error", "There was an error registering you, please try again.",
-                                                  snackPosition: SnackPosition.BOTTOM);
+                                              Get.snackbar(
+                                                  "Error",
+                                                  // "There was an error registering you, please try again.",
+                                                  error,
+                                                  snackPosition:
+                                                      SnackPosition.BOTTOM);
                                             },
                                             (user) {
-                                              Get.toNamed(RouteNames.MAIN_SCREEN);
+                                              Get.toNamed(
+                                                  RouteNames.MAIN_SCREEN);
                                             },
                                           );
                                         }
