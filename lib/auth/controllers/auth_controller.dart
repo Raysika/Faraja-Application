@@ -39,4 +39,14 @@ class AuthController extends GetxController {
       return right(r);
     });
   }
+
+  Future<Either<String, String>> logOut () async {
+    var result = await _userService.logoutUser();
+
+    return result.fold((l) {
+      return left(l);
+    }, (r) {
+      return right(r);
+    });
+  }
 }

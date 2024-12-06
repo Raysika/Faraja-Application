@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:hackathon_frontend/auth/controllers/auth_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -12,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final AuthController _authController = Get.put(AuthController());
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
@@ -25,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Row(
                   mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween, // Adjust alignment
+                      MainAxisAlignment.spaceBetween, 
                   children: [
                     Text(
                       "Hey, 👋",
@@ -35,12 +38,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert), // Ellipsis icon
-                      onSelected: (String value) {
+                      icon: const Icon(Icons.more_vert), 
+                      onSelected: (String value) async {
                         if (value == "logout") {
-                          // Handle logout logic here
-                          debugPrint("User chose to log out");
-                          // Example: Navigate to login screen or clear session
+                          // Show a confirmation dialog before logging out
+                          bool? shouldLogOut = await _showLogoutDialog(context);
+
+                          // If user confirmed logout, proceed with the logout action
+                          if (shouldLogOut == true) {
+                            await _authController.logOut();
+
+                            // Navigate to the login screen
+                            if (context.mounted) {
+                              Navigator.pushReplacementNamed(context, RouteNames.LOGIN_SCREEN);
+                            }
+                          }
                         }
                       },
                       itemBuilder: (BuildContext context) => [
@@ -102,16 +114,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async{
+        onPressed: () async {
           final Uri dialerUri = Uri(
             scheme: "tel",
-            path: "+254703 037 000", // Red Cross help line  
+            path: "+254703 037 000", // Red Cross help line
           );
 
           if (await canLaunchUrl(dialerUri)) {
             await launchUrl(dialerUri);
-          }
-          else {
+          } else {
             // ScaffoldMessenger.of(context).showSnackBar(
             //   const SnackBar(
             //     content: Text("Sorry we are currently unable to open dialer"),
@@ -124,6 +135,32 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: theme.colorScheme.onPrimaryContainer,
         child: const Icon(Icons.phone),
       ),
+    );
+  }
+
+  Future<bool?> _showLogoutDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // User canceled
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // User confirmed
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

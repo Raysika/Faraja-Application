@@ -73,7 +73,6 @@ class UserService extends NetworkHelper {
     }
   }
 
-  // Login user
   Future<Either<String, User>> loginUser(
       String userName, String password) async {
     try {
@@ -115,6 +114,43 @@ class UserService extends NetworkHelper {
     } catch (e) {
       debugPrint("Error logging in: $e");
       return Left('Error logging in: $e');
+    }
+  }
+
+  Future<Either<String, String>> logoutUser() async {
+    try {
+      // Retrieve the access and refresh tokens from local storage
+      TokenPair? tokenPair = await LocalStorage.getToken();
+      if (tokenPair == null) {
+        return const Left('No tokens found, user might not be logged in');
+      }
+
+      var response = await http.post(
+        Uri.parse("${Constants.BASE_URL}/accounts/logout/"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${tokenPair.access}",
+            
+        },
+        body: jsonEncode({
+            'refresh': tokenPair.refresh
+          }),
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint("Logout successful");
+
+        // Remove tokens from local storage
+        await LocalStorage.deleteToken();
+
+        return const Right('Logout successful');
+      } else {
+        debugPrint("Error: ${response.body}");
+        return Left('Failed to logout. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error logging out: $e');
+      return Left('Error logging out: $e');
     }
   }
 }
