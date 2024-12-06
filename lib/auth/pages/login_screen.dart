@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: () async {
                                         if (_formKey.currentState!.saveAndValidate()) {
                                           var result =
-                                              await _authController.logIn(
+                                              await _authController.logInUser(
                                             _formKey.currentState!
                                                 .value['username'],
                                             _formKey.currentState!

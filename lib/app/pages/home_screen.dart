@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                           // If user confirmed logout, proceed with the logout action
                           if (shouldLogOut == true) {
-                            await _authController.logOut();
+                            await _authController.logOutUser();
 
                             // Navigate to the login screen
                             if (context.mounted) {

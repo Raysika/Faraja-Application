@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:dartz/dartz.dart';
 import 'package:hackathon_frontend/auth/models/core/user.dart';
@@ -19,7 +20,7 @@ class AuthController extends GetxController {
       String dateOfBirth) async {
     isLoading(true);
     var result = await _userService.register(userName, firstName, lastName,
-        gender ,email, phoneNumber, password, dateOfBirth);
+        gender, email, phoneNumber, password, dateOfBirth);
 
     isLoading(false);
     return result.fold((l) {
@@ -29,7 +30,8 @@ class AuthController extends GetxController {
     });
   }
 
-  Future<Either<String, dynamic>> logIn(String userName, String password)  async{
+  Future<Either<String, dynamic>> logInUser(
+      String userName, String password) async {
     isLoading(true);
     var result = await _userService.loginUser(userName, password);
     isLoading(false);
@@ -40,8 +42,49 @@ class AuthController extends GetxController {
     });
   }
 
-  Future<Either<String, String>> logOut () async {
+  Future<Either<String, User>> getUserDetails() async {
+    var result = await _userService.getUserDetails();
+
+    return result.fold((l) {
+      return left(l);
+    }, (r) {
+      return right(r);
+    });
+  }
+
+  Future<Either<String, User>> updateUserPartially(
+      String profilePicture) async {
+    var userDetailsResult = await getUserDetails();
+
+    return userDetailsResult.fold((error) {
+      debugPrint('Error fetching user details: $error');
+      return Left('Error fetching user details: $error');
+    }, (user) async {
+      int userId = user.id!;
+
+      Map<String, dynamic> updatedFields = {
+        "profile_picture": profilePicture,
+      };
+
+      var updatedResult =
+          await _userService.updateUserPartially(userId, updatedFields);
+
+      return updatedResult.fold((l) => left(l), (r) => right(r));
+    });
+  }
+
+  Future<Either<String, String>> logOutUser() async {
     var result = await _userService.logoutUser();
+
+    return result.fold((l) {
+      return left(l);
+    }, (r) {
+      return right(r);
+    });
+  }
+
+  Future<Either<String, String>> deleteAccount() async {
+    var result = await _userService.deleteAccount();
 
     return result.fold((l) {
       return left(l);
